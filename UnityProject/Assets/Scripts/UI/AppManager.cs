@@ -1,19 +1,18 @@
-using UnityEngine;
+using System.Collections;
 using System.Collections.Generic;
+using UnityEngine;
 
 public class AppManager : MonoBehaviour
 {
-    public ColorDetector colorDetector;
-    public PaletteGenerator paletteGenerator;
-    public UIManager uiManager;
-
-    public void ProcessImage()
+    // Start is called before the first frame update
+    void Start()
     {
-        Color detectedColor = colorDetector.GetAverageColor();
+        
+    }
 
-        List<Color> palette = paletteGenerator.GeneratePalette(detectedColor);
-
-        // Aquí se enviarían los colores a la UI
-        Debug.Log("Color detectado y paleta generada");
+    // Update is called once per frame
+    void Update()
+    {
+        
     }
 }
