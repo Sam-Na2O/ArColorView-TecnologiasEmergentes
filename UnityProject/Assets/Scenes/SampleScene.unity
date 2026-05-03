@@ -723,11 +723,23 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 1221557339}
         m_TargetAssemblyTypeName: UIManager, Assembly-CSharp
-        m_MethodName: ShowPalettes
+        m_MethodName: OnSelectColor
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+      - m_Target: {fileID: 0}
+        m_TargetAssemblyTypeName: UIManager, Assembly-CSharp
+        m_MethodName: 
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: 
           m_IntArgument: 0
           m_FloatArgument: 0
           m_StringArgument: 
@@ -1733,7 +1745,11 @@ MonoBehaviour:
   colorPreview: {fileID: 1450842853}
   colorCodeText: {fileID: 1497329118}
   palettePanel: {fileID: 342228474}
-  paletteImages: []
+  paletteImages:
+  - {fileID: 638092165}
+  - {fileID: 1113758693}
+  - {fileID: 54209987}
+  - {fileID: 1384587279}
   modelPanel: {fileID: 354095926}
 --- !u!4 &1221557340
 Transform:

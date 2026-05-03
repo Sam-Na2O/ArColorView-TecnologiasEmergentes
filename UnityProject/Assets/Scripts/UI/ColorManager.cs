@@ -6,17 +6,22 @@ public class ColorManager : MonoBehaviour
 {
     [Header("Referencias")]
     public ColorDetector detector;
-    public Renderer modelo3D;          // del módulo de Persona 2 (puede ser null)
-    public Image colorPanelImage;      // el ColorPanel que muestra el color base
+    public Renderer modelo3D;
+    public Image colorPanelImage;
 
     [Header("Modo")]
-    [Tooltip("Si está activo, la paleta se actualiza en vivo.")]
     public bool modoEnVivo = false;
 
     public Color ColorBase { get; private set; }
     public List<Color> PaletaActual { get; private set; } = new List<Color>();
 
     public System.Action<List<Color>> OnPaletaActualizada;
+
+    void Awake()
+    {
+        // 🔥 Toma automáticamente el ColorDetector del mismo objeto
+        detector = GetComponent<ColorDetector>();
+    }
 
     void Start()
     {
@@ -35,10 +40,10 @@ public class ColorManager : MonoBehaviour
             ActualizarPaleta(color);
     }
 
-    /// <summary>Llamar desde el botón Detectar.</summary>
     public void CapturarColor()
     {
         if (detector == null) return;
+
         ActualizarPaleta(detector.ColorPredominante);
     }
 
