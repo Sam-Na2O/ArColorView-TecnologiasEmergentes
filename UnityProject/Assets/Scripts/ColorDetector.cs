@@ -1,63 +1,100 @@
+using System.Collections;
+using Unity.Collections;
 using UnityEngine;
-using UnityEngine.UI;
+using UnityEngine.XR.ARFoundation;
+using UnityEngine.XR.ARSubsystems;
 
 public class ColorDetector : MonoBehaviour
 {
-    [Header("UI (opcional)")]
-    public RawImage cameraDisplay; // para previsualizar la cámara
+    [Header("Referencias AR")]
+    public ARCameraManager cameraManager; // arrastrar la AR Camera aquí
 
     [Header("Muestreo")]
     [Tooltip("Cada cuántos segundos se analiza la imagen.")]
     public float intervaloMuestreo = 0.5f;
     [Tooltip("De cada N píxeles, se toma 1. Más alto = más rápido.")]
     public int saltoPixeles = 16;
+    [Tooltip("Reducción de resolución para ahorrar recursos.")]
+    public int factorReduccion = 4;
 
-    private WebCamTexture webcam;
     private float tiempo;
+    private bool procesando;
 
     // Color predominante actual (otros módulos pueden leerlo)
-    public Color ColorPredominante { get; private set; }
+    public Color ColorPredominante { get; private set; } = Color.white;
 
-    // Evento para avisar a otros scripts (UI, modelo 3D, etc.)
+    // Evento para avisar a otros scripts
     public System.Action<Color> OnColorDetectado;
 
-    void Start()
+    void OnEnable()
     {
-        if (WebCamTexture.devices.Length == 0)
-        {
-            Debug.LogError("No se detectó cámara en el dispositivo.");
-            return;
-        }
-
-        webcam = new WebCamTexture();
-        if (cameraDisplay != null) cameraDisplay.texture = webcam;
-        webcam.Play();
+        if (cameraManager != null)
+            cameraManager.frameReceived += OnFrameReceived;
     }
 
-    void Update()
+    void OnDisable()
     {
-        if (webcam == null || !webcam.isPlaying || webcam.width < 100) return;
+        if (cameraManager != null)
+            cameraManager.frameReceived -= OnFrameReceived;
+    }
 
+    void OnFrameReceived(ARCameraFrameEventArgs eventArgs)
+    {
+        // Throttling: no procesamos cada frame
         tiempo += Time.deltaTime;
-        if (tiempo >= intervaloMuestreo)
-        {
-            tiempo = 0f;
-            CalcularColorPromedio();
-        }
+        if (tiempo < intervaloMuestreo || procesando) return;
+        tiempo = 0f;
+
+        ProcesarImagen();
     }
 
-    void CalcularColorPromedio()
+    void ProcesarImagen()
     {
-        Color32[] pixeles = webcam.GetPixels32();
+        // Intentar obtener la imagen actual de la cámara AR
+        if (!cameraManager.TryAcquireLatestCpuImage(out XRCpuImage image))
+            return;
 
+        procesando = true;
+
+        // Configurar la conversión: bajar resolución y formato RGBA
+        var conversionParams = new XRCpuImage.ConversionParams
+        {
+            inputRect = new RectInt(0, 0, image.width, image.height),
+            outputDimensions = new Vector2Int(
+                image.width / factorReduccion,
+                image.height / factorReduccion),
+            outputFormat = TextureFormat.RGBA32,
+            transformation = XRCpuImage.Transformation.None
+        };
+
+        // Reservar buffer y convertir
+        int size = image.GetConvertedDataSize(conversionParams);
+        var buffer = new NativeArray<byte>(size, Allocator.Temp);
+        image.Convert(conversionParams, buffer);
+
+        // CRÍTICO: liberar la imagen para evitar fugas de memoria
+        image.Dispose();
+
+        CalcularColorPromedio(buffer, conversionParams.outputDimensions);
+
+        buffer.Dispose();
+        procesando = false;
+    }
+
+    void CalcularColorPromedio(NativeArray<byte> buffer, Vector2Int dimensiones)
+    {
         long r = 0, g = 0, b = 0;
         int count = 0;
 
-        for (int i = 0; i < pixeles.Length; i += saltoPixeles)
+        // El buffer es RGBA32 = 4 bytes por píxel
+        int totalPixeles = dimensiones.x * dimensiones.y;
+
+        for (int i = 0; i < totalPixeles; i += saltoPixeles)
         {
-            r += pixeles[i].r;
-            g += pixeles[i].g;
-            b += pixeles[i].b;
+            int idx = i * 4;
+            r += buffer[idx];
+            g += buffer[idx + 1];
+            b += buffer[idx + 2];
             count++;
         }
 
@@ -70,10 +107,5 @@ public class ColorDetector : MonoBehaviour
         );
 
         OnColorDetectado?.Invoke(ColorPredominante);
-    }
-
-    void OnDisable()
-    {
-        if (webcam != null && webcam.isPlaying) webcam.Stop();
     }
 }
