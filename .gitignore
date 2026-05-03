@@ -105,3 +105,7 @@ InitTestScene*.unity*
 # Archivos de sistema
 .DS_Store
 Thumbs.db
+
+UnityProject/Library/
+UnityProject/UserSettings/
+UnityProject/.vscode/
