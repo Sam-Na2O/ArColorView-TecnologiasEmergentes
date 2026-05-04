@@ -8,13 +8,24 @@ public class RoomColorController : MonoBehaviour
     public Material bedMaterial;
     public Material furnitureMaterial;
 
-    public void AplicarPaleta(List<Color> paleta)
-    {
-        if (paleta == null || paleta.Count < 6) return;
+    private ColorManager colorManager;
 
-        wallMaterial.color = paleta[0];      // base
-        floorMaterial.color = paleta[3];     // oscuro
-        bedMaterial.color = paleta[1];       // claro
-        furnitureMaterial.color = paleta[4]; // muy oscuro
+    void Start()
+    {
+        colorManager = FindObjectOfType<ColorManager>();
+    }
+
+    public void AplicarPaleta()
+    {
+        if (colorManager == null) return;
+
+        List<Color> paleta = colorManager.PaletaActual;
+
+        if (paleta == null || paleta.Count < 4) return;
+
+        wallMaterial.color = paleta[0];
+        floorMaterial.color = paleta[1];
+        bedMaterial.color = paleta[2];
+        furnitureMaterial.color = paleta[3];
     }
 }
