@@ -1,12 +1,9 @@
 using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
-using System.Collections.Generic;
 
 public class UIManager : MonoBehaviour
 {
-    private ColorManager colorManager;
-
     [Header("UI General")]
     public TextMeshProUGUI topText;
     public GameObject detectButton;
@@ -18,38 +15,17 @@ public class UIManager : MonoBehaviour
 
     [Header("Panel de paletas")]
     public GameObject palettePanel;
-    public Image[] paletteImages;
+    public Image[] paletteImages; // Asignar 4 imágenes desde Unity
 
     [Header("Panel de modelo")]
     public GameObject modelPanel;
 
-    void Awake()
-    {
-        colorManager = GetComponent<ColorManager>();
-    }
-
     void Start()
     {
         ShowInitial();
-
-        if (colorManager != null)
-        {
-            colorManager.OnPaletaActualizada += MostrarResultadoDeteccion;
-        }
-        else
-        {
-            Debug.LogError("UIManager: No se encontró ColorManager");
-        }
     }
 
-    void OnDestroy()
-    {
-        if (colorManager != null)
-        {
-            colorManager.OnPaletaActualizada -= MostrarResultadoDeteccion;
-        }
-    }
-
+    // Estado inicial
     public void ShowInitial()
     {
         topText.text = "Apunta a una superficie y detecta el color";
@@ -60,66 +36,70 @@ public class UIManager : MonoBehaviour
         modelPanel.SetActive(false);
     }
 
+    // Botón detectar
     public void OnDetectPressed()
     {
         topText.text = "Detectando color...";
         detectButton.SetActive(false);
 
-        if (colorManager != null)
-        {
-            colorManager.CapturarColor();
-        }
+        // Persona 1 — Captura de cámara y datos de color
+        // Aquí se debe iniciar la detección real del color desde la cámara.
+        // Cuando se obtenga el color, se debe llamar a OnColorDetected(...)
     }
 
-    void MostrarResultadoDeteccion(List<Color> paleta)
+    // Recibir color detectado
+    public void OnColorDetected(Color detectedColor, string hexCode)
     {
-        Debug.Log("UIManager recibió la paleta");
-
         topText.text = "Color detectado";
 
-        detectButton.SetActive(false);
         colorPanel.SetActive(true);
 
-        palettePanel.SetActive(false);
-        modelPanel.SetActive(false);
+        colorPreview.color = detectedColor;
+        colorCodeText.text = hexCode;
 
-        if (paleta != null && paleta.Count > 0)
-        {
-            colorPreview.color = paleta[0];
-            colorCodeText.text = "#" + ColorUtility.ToHtmlStringRGB(paleta[0]);
-        }
+        // Persona 2 — Modelo tridimensional y materiales
+        // Aquí se puede iniciar la generación de la paleta a partir del color detectado
     }
 
-    public void OnSelectColor()
+    // Mostrar paleta generada
+    public void ShowPalette(Color[] colors)
     {
-        Debug.Log("Botón seleccionar presionado");
-
         topText.text = "Paletas recomendadas";
 
         colorPanel.SetActive(false);
         palettePanel.SetActive(true);
 
-        if (colorManager == null)
+        for (int i = 0; i < paletteImages.Length && i < colors.Length; i++)
         {
-            Debug.LogError("ColorManager no está asignado");
-            return;
+            paletteImages[i].color = colors[i];
         }
 
-        if (colorManager.PaletaActual == null || colorManager.PaletaActual.Count == 0)
-        {
-            Debug.LogError("La paleta está vacía");
-            return;
-        }
-
-        for (int i = 0; i < paletteImages.Length && i < colorManager.PaletaActual.Count; i++)
-        {
-            paletteImages[i].color = colorManager.PaletaActual[i];
-        }
+        // Persona 2 — Modelo tridimensional y materiales
+        // Este método debe ser llamado cuando ya se tenga la paleta generada
     }
 
+    // Botón seleccionar paleta
+    public void OnSelectPalette()
+    {
+        topText.text = "Modelo generado";
+
+        palettePanel.SetActive(false);
+        modelPanel.SetActive(true);
+
+        // Persona 2 — Modelo tridimensional y materiales
+        // Aquí se deben aplicar los colores al modelo 3D
+
+        // Persona 3 — Realidad aumentada y escena tridimensional
+        // Aquí se debe mostrar o posicionar el modelo en la escena
+    }
+
+    // Botón terminar
     public void RestartApp()
     {
         modelPanel.SetActive(false);
         ShowInitial();
+
+        // Todos
+        // Aquí se puede limpiar estado o reiniciar datos si es necesario
     }
 }
